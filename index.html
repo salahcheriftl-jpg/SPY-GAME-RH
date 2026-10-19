@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="لعبة الجاسوس: واحد فيكم ما كيعرفش المكان. لعبة جماعية بتيليفون واحد.">
+  <meta name="theme-color" content="#16090b">
+  <title>الجاسوس – لعبة الخداع</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%95%B5%EF%B8%8F%3C/text%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&family=Reem+Kufi:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+:root {
+  --ink: #16090b;
+  --panel: #241114;
+  --line: #4a2a2e;
+  --blood: #c8141b;
+  --paper: #efe4d6;
+  --mute: #a89a92;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html { height: 100%; }
+body {
+  margin: 0; min-height: 100%;
+  background: var(--ink); color: var(--paper);
+  font-family: Cairo, system-ui, sans-serif;
+  display: flex; justify-content: center;
+  padding: env(safe-area-inset-top, 0) 0 env(safe-area-inset-bottom, 0);
+}
+main { width: 100%; max-width: 480px; padding: 28px 20px 40px; display: flex; flex-direction: column; gap: 16px; }
+h1, h2 { font-family: "Reem Kufi", Cairo, sans-serif; margin: 0; line-height: 1.2; }
+h1 { font-size: 3rem; }
+h1 b { color: var(--blood); }
+h2 { font-size: 1.7rem; }
+p { margin: 0; color: var(--mute); line-height: 1.7; }
+.hat { width: 92px; height: 92px; }
+.center { text-align: center; }
+.hint { font-size: .85rem; }
+
+.row { display: flex; align-items: center; justify-content: space-between; gap: 12px; background: var(--panel); border-radius: 14px; padding: 12px 16px; }
+.row label { font-weight: 700; }
+.step { display: flex; align-items: center; gap: 14px; }
+.step button { width: 42px; height: 42px; border-radius: 50%; border: 0; background: var(--ink); color: var(--paper); font-size: 1.4rem; cursor: pointer; }
+.step button:disabled { opacity: .3; cursor: not-allowed; }
+.step output { min-width: 2ch; text-align: center; font-size: 1.3rem; font-weight: 700; }
+select { background: var(--ink); color: var(--paper); border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; font: inherit; }
+
+.btn { width: 100%; border: 0; border-radius: 16px; background: var(--blood); color: #fff; font: 700 1.2rem "Reem Kufi", Cairo, sans-serif; padding: 16px; cursor: pointer; }
+.btn.ghost { background: transparent; border: 2px solid var(--line); color: var(--paper); }
+textarea { width: 100%; background: var(--panel); color: var(--paper); border: 1px solid var(--line); border-radius: 14px; padding: 14px; font: inherit; line-height: 1.8; resize: vertical; }
+textarea::placeholder { color: var(--mute); opacity: .6; }
+textarea:focus-visible { outline: 3px solid var(--paper); outline-offset: 2px; }
+button:focus-visible, select:focus-visible, .card:focus-visible { outline: 3px solid var(--paper); outline-offset: 3px; }
+
+.card { min-height: 320px; border-radius: 24px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; text-align: center; padding: 24px; cursor: pointer; user-select: none; background: var(--blood); color: #fff; transition: background .2s; }
+.card.hidden { background: var(--panel); color: var(--paper); border: 2px dashed var(--line); }
+.card.safe { background: var(--paper); color: var(--ink); }
+.card .big { font-family: "Reem Kufi", Cairo, sans-serif; font-size: 2.4rem; font-weight: 700; }
+.card small { opacity: .8; font-size: .95rem; }
+
+.timer { font: 700 4.5rem "Reem Kufi", Cairo, sans-serif; text-align: center; direction: ltr; font-variant-numeric: tabular-nums; }
+.timer.low { color: var(--blood); }
+.noscript { text-align: center; padding: 20px; }
+@media (prefers-reduced-motion: reduce) { .card { transition: none; } }
+
+/* names, packs, forms */
+input[type="text"] { flex: 1; min-width: 0; background: var(--ink); color: var(--paper); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; font: inherit; }
+input[type="text"]::placeholder { color: var(--mute); opacity: .6; }
+input[type="text"]:focus-visible { outline: 3px solid var(--paper); outline-offset: 2px; }
+.row label[for^="n"] { min-width: 2ch; color: var(--mute); }
+.grow { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.mini { border: 0; border-radius: 10px; background: var(--ink); color: var(--paper); font: inherit; font-size: .9rem; padding: 8px 12px; cursor: pointer; }
+.mini.danger { color: #ff8b8f; }
+.err { color: #ff8b8f; min-height: 1.2em; }
+
+/* pack browser */
+h3 { font-family: "Reem Kufi", Cairo, sans-serif; font-size: 1.25rem; margin: 0 0 8px; }
+.pack { background: var(--panel); border-radius: 14px; padding: 14px 16px; }
+.tags { display: flex; flex-wrap: wrap; gap: 8px; }
+.tags span { background: var(--ink); border: 1px solid var(--line); border-radius: 999px; padding: 4px 12px; font-size: .9rem; }
+.badge { background: var(--blood); color: #fff; border-radius: 999px; padding: 2px 10px; font-size: .75rem; font-family: Cairo, sans-serif; }
+
+</style>
+</head>
+<body>
+  <main id="app" aria-live="polite"></main>
+  <noscript><p class="noscript">خاصك تفعل JavaScript باش تلعب.</p></noscript>
+  <script>
+(function () {
+  'use strict';
+
+  /* ---------- المجموعات الجاهزة ---------- */
+  var BUILTIN = {
+    'أماكن عامة': ['مطار', 'مستشفى', 'مدرسة', 'سينما', 'مكتبة', 'مطعم', 'سوبرمارش', 'ملعب', 'حديقة', 'بنك', 'محطة قطار', 'فندق', 'مسبح', 'صالة رياضة'],
+    'المغرب': ['حمام شعبي', 'سوق شعبي', 'كورنيش عين الذئاب', 'جامع الفنا', 'ملعب محمد الخامس', 'مقهى', 'فرن الحي', 'شاطئ', 'المدينة القديمة', 'محطة الطرامواي', 'عرس مغربي', 'ضريح', 'مزرعة فالبادية', 'جبال الأطلس'],
+    'سفر ومغامرة': ['طائرة', 'باخرة سياحية', 'قطار سريع', 'صحراء', 'غابة', 'قاعدة عسكرية', 'محطة فضاء', 'جزيرة', 'متحف', 'مخيم', 'سفارة', 'سجن'],
+    'الحومة والدار': ['الكوزينة', 'السطح', 'الصالون', 'الحمام', 'الكراج', 'بيت الجيران', 'الدكان', 'الفرن', 'المسيد', 'عند الحلاق', 'بيت الجدة', 'الشرفة', 'الحديقة'],
+    'رياضة': ['ملعب كرة القدم', 'ملعب السلة', 'مسبح', 'صالة رياضة', 'حلبة الملاكمة', 'مضمار الجري', 'ملعب التنس', 'قاعة الجودو', 'نادي الفروسية', 'ملعب الغولف', 'قمة الجبل', 'نادي الغوص'],
+    'خيال وأفلام': ['سفينة قراصنة', 'قلعة ملكية', 'مدرسة السحر', 'مختبر عالم مجنون', 'مدينة تحت الماء', 'كهف التنين', 'غابة مسكونة', 'قاعدة سرية', 'متحف الشمع', 'قصر مهجور', 'سيرك', 'كوكب غريب'],
+    'مهن وخدمات': ['مركز الشرطة', 'مطافئ', 'محطة البنزين', 'صيدلية', 'عيادة الأسنان', 'مغسلة', 'محكمة', 'مكتب البريد', 'ورشة الميكانيكي', 'استوديو التصوير', 'صالون الحلاقة', 'وكالة الأسفار'],
+    'عطلة الصيف': ['شاطئ', 'مخيم صيفي', 'حفل موسيقي', 'مدينة الألعاب', 'كرنفال', 'مطعم فالبحر', 'قارب صيد', 'مسبح الفندق', 'سوق الليل', 'حديقة الحيوان', 'تيليفيريك', 'ميناء']
+  };
+
+  var MIX = 'mix';
+  var LIMITS = { players: [3, 20], mins: [2, 15] };
+  var DEFAULTS = { players: 5, spies: 1, mins: 7, pack: 'b:أماكن عامة' };
+  var MIN_PLACES = 5, MAX_PLACES = 100, MAX_PLACE_LEN = 40;
+  var MAX_PACKS = 20, MAX_PACK_NAME = 24, MAX_NAME = 20;
+  var K_SETTINGS = 'spy-settings-v2', K_NAMES = 'spy-names-v1', K_PACKS = 'spy-packs-v2', K_OLD = 'spy-custom-v1';
+
+  var app = document.getElementById('app');
+  var customPacks = loadPacks();
+  var names = loadNames();
+  var settings = loadSettings();
+  var game = null, timerId = null, lastPlace = null;
+
+  var HAT = '<svg class="hat" viewBox="0 0 100 100" aria-hidden="true"><rect x="22" y="20" width="56" height="22" rx="4" fill="#c8141b"/><rect x="8" y="40" width="84" height="8" rx="4" fill="#c8141b"/><rect x="30" y="52" width="40" height="22" rx="8" fill="#c8141b"/><circle cx="42" cy="62" r="3" fill="#16090b"/><circle cx="58" cy="62" r="3" fill="#16090b"/><rect x="18" y="78" width="64" height="16" rx="6" fill="#c8141b"/></svg>';
+
+  /* ---------- أدوات ---------- */
+  function esc(t) {
+    return String(t).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function clamp(v, a, b) { return Math.min(b, Math.max(a, v)); }
+  function read(key) { try { return JSON.parse(localStorage.getItem(key)); } catch (e) { return null; } }
+  function write(key, val) { try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) { /* storage unavailable */ } }
+  function randInt(n) {
+    if (window.crypto && crypto.getRandomValues) { var a = new Uint32Array(1); crypto.getRandomValues(a); return a[0] % n; }
+    return Math.floor(Math.random() * n);
+  }
+  function shuffle(arr) {
+    for (var i = arr.length - 1; i > 0; i--) { var j = randInt(i + 1), t = arr[i]; arr[i] = arr[j]; arr[j] = t; }
+    return arr;
+  }
+  function fmt(sec) { var m = Math.floor(sec / 60), s = sec % 60; return m + ':' + (s < 10 ? '0' : '') + s; }
+  function render(html) { app.innerHTML = html; window.scrollTo(0, 0); }
+  function on(id, fn) { var el = document.getElementById(id); if (el) el.addEventListener('click', fn); return el; }
+  function cleanLine(t, max) { return String(t).replace(/\s+/g, ' ').trim().slice(0, max); }
+  function cleanPlaces(text) {
+    var seen = {}, out = [];
+    String(text).split(/\r?\n/).forEach(function (l) {
+      var t = cleanLine(l, MAX_PLACE_LEN);
+      if (t && !seen[t]) { seen[t] = true; out.push(t); }
+    });
+    return out.slice(0, MAX_PLACES);
+  }
+  // الجواسيس لازم يبقاو أقل من نص اللاعبين (3 لاعبين = جاسوس واحد)
+  function maxSpies(n) { return Math.max(1, Math.min(4, Math.floor((n - 1) / 2))); }
+
+  /* ---------- التخزين ---------- */
+  function newId() { return Date.now().toString(36) + randInt(1296).toString(36); }
+
+  function loadPacks() {
+    var raw = read(K_PACKS), out = [];
+    if (Array.isArray(raw)) {
+      raw.forEach(function (p) {
+        if (p && p.id && p.name && Array.isArray(p.places)) {
+          out.push({ id: String(p.id), name: cleanLine(p.name, MAX_PACK_NAME), places: cleanPlaces(p.places.join('\n')) });
+        }
+      });
+    } else {
+      // ترحيل المجموعة الخاصة من النسخة القديمة
+      var old = read(K_OLD);
+      if (Array.isArray(old) && old.length >= MIN_PLACES) {
+        out.push({ id: newId(), name: 'مجموعتي', places: cleanPlaces(old.join('\n')) });
+        write(K_PACKS, out);
+      }
+    }
+    return out.slice(0, MAX_PACKS);
+  }
+  function savePacks() { write(K_PACKS, customPacks); }
+
+  function loadNames() {
+    var raw = read(K_NAMES);
+    return Array.isArray(raw) ? raw.slice(0, LIMITS.players[1]).map(function (n) { return cleanLine(n, MAX_NAME); }) : [];
+  }
+  function playerName(i) { return cleanLine(names[i] || '', MAX_NAME) || 'اللاعب ' + (i + 1); }
+
+  function packList() {
+    var list = [];
+    Object.keys(BUILTIN).forEach(function (n) { list.push({ key: 'b:' + n, name: n, places: BUILTIN[n], group: 'builtin' }); });
+    customPacks.forEach(function (p) {
+      if (p.places.length >= MIN_PLACES) list.push({ key: 'c:' + p.id, name: p.name, places: p.places, group: 'custom' });
+    });
+    return list;
+  }
+  function placesFor(key) {
+    var list = packList();
+    if (key === MIX) return list.reduce(function (acc, p) { return acc.concat(p.places); }, []);
+    for (var i = 0; i < list.length; i++) if (list[i].key === key) return list[i].places;
+    return BUILTIN['أماكن عامة'];
+  }
+
+  function normalize(s) {
+    var out = {
+      players: clamp(parseInt(s.players, 10) || DEFAULTS.players, LIMITS.players[0], LIMITS.players[1]),
+      mins: clamp(parseInt(s.mins, 10) || DEFAULTS.mins, LIMITS.mins[0], LIMITS.mins[1])
+    };
+    out.spies = clamp(parseInt(s.spies, 10) || 1, 1, maxSpies(out.players));
+    var ok = s.pack === MIX || packList().some(function (p) { return p.key === s.pack; });
+    out.pack = ok ? s.pack : DEFAULTS.pack;
+    return out;
+  }
+  function loadSettings() { return normalize(read(K_SETTINGS) || DEFAULTS); }
+  function saveSettings() { write(K_SETTINGS, settings); }
+
+  /* ---------- الصفحة الرئيسية ---------- */
+  function stepper(key, min, max) {
+    var v = settings[key];
+    return '<div class="step"><button type="button" aria-label="زيد" data-key="' + key + '" data-d="1"' + (v >= max ? ' disabled' : '') + '>+</button>' +
+      '<output>' + v + '</output>' +
+      '<button type="button" aria-label="نقص" data-key="' + key + '" data-d="-1"' + (v <= min ? ' disabled' : '') + '>−</button></div>';
+  }
+  function option(value, label) {
+    return '<option value="' + esc(value) + '"' + (value === settings.pack ? ' selected' : '') + '>' + esc(label) + '</option>';
+  }
+
+  function showHome() {
+    stopTimer();
+    var ms = maxSpies(settings.players), list = packList();
+    var builtin = list.filter(function (p) { return p.group === 'builtin'; }).map(function (p) { return option(p.key, p.name + ' (' + p.places.length + ')'); }).join('');
+    var custom = list.filter(function (p) { return p.group === 'custom'; }).map(function (p) { return option(p.key, p.name + ' (' + p.places.length + ')'); }).join('');
+    var customGroup = custom ? '<optgroup label="مجموعاتي">' + custom + '</optgroup>' : '';
+    var named = names.slice(0, settings.players).filter(function (n) { return cleanLine(n, MAX_NAME); }).length;
+
+    render(
+      HAT + '<h1>لعبة <b>الجاسوس</b></h1>' +
+      '<p>واحد فيكم جاسوس وما كيعرفش المكان. الباقي كيعرفوه. سولو بعضياتكم وكشفو الجاسوس قبل ما يوفى الوقت.</p>' +
+      '<div class="row"><label>عدد اللاعبين</label>' + stepper('players', LIMITS.players[0], LIMITS.players[1]) + '</div>' +
+      '<div class="row"><label>عدد الجواسيس</label>' + stepper('spies', 1, ms) + '</div>' +
+      '<p class="hint">الحد الأقصى للجواسيس مع ' + settings.players + ' لاعبين: ' + ms + '</p>' +
+      '<div class="row"><label>الوقت (دقايق)</label>' + stepper('mins', LIMITS.mins[0], LIMITS.mins[1]) + '</div>' +
+      '<div class="row"><label for="pack">المجموعة</label><select id="pack">' +
+        '<optgroup label="جاهزة">' + builtin + '</optgroup>' + customGroup +
+        '<optgroup label="خليط">' + option(MIX, 'كل المجموعات (خليط)') + '</optgroup></select></div>' +
+      '<button type="button" class="btn ghost" id="browse">شنو كاين فالمجموعات؟</button>' +
+      '<button type="button" class="btn ghost" id="names">أسماء اللاعبين' + (named ? ' (' + named + ')' : '') + '</button>' +
+      '<button type="button" class="btn ghost" id="packs">مجموعاتي (' + customPacks.length + ')</button>' +
+      '<button type="button" class="btn" id="start">بدا اللعب</button>'
+    );
+
+    app.querySelectorAll('.step button').forEach(function (b) {
+      b.addEventListener('click', function () {
+        settings[b.dataset.key] += parseInt(b.dataset.d, 10);
+        settings = normalize(settings); saveSettings(); showHome();
+      });
+    });
+    document.getElementById('pack').addEventListener('change', function (e) { settings.pack = e.target.value; saveSettings(); });
+    on('browse', showBrowse); on('names', showNames); on('packs', showPacks); on('start', startGame);
+  }
+
+  /* ---------- عرض محتوى المجموعات ---------- */
+  function showBrowse() {
+    var html = packList().map(function (p) {
+      return '<section class="pack"><h3>' + esc(p.name) + ' <span class="hint">(' + p.places.length + ')</span>' +
+        (p.group === 'custom' ? ' <span class="badge">مجموعتي</span>' : '') + '</h3><div class="tags">' +
+        p.places.map(function (x) { return '<span>' + esc(x) + '</span>'; }).join('') + '</div></section>';
+    }).join('');
+    render(
+      '<h2 class="center">محتوى المجموعات</h2>' +
+      '<p class="center">هادو هوما الأماكن اللي كاينين فكل مجموعة. شوفهم قبل ما تختار، ماشي وسط اللعبة 😉</p>' +
+      html +
+      '<button type="button" class="btn ghost" id="back">رجوع</button>'
+    );
+    on('back', showHome);
+  }
+
+  /* ---------- أسماء اللاعبين ---------- */
+  function showNames() {
+    var inputs = '';
+    for (var i = 0; i < settings.players; i++) {
+      inputs += '<div class="row"><label for="n' + i + '">' + (i + 1) + '</label>' +
+        '<input type="text" id="n' + i + '" maxlength="' + MAX_NAME + '" autocomplete="off" placeholder="اللاعب ' + (i + 1) + '" value="' + esc(names[i] || '') + '"></div>';
+    }
+    render(
+      '<h2 class="center">أسماء اللاعبين</h2>' +
+      '<p class="center">كتب سمية كل واحد باش كل لاعب يعرف شكون دورو. إلا خليتي خانة خاوية كيتسمى "اللاعب 1" وهكذا.</p>' +
+      inputs +
+      '<button type="button" class="btn" id="save">حفظ</button>' +
+      '<button type="button" class="btn ghost" id="back">رجوع</button>'
+    );
+    on('save', function () {
+      for (var i = 0; i < settings.players; i++) names[i] = cleanLine(document.getElementById('n' + i).value, MAX_NAME);
+      write(K_NAMES, names); showHome();
+    });
+    on('back', showHome);
+  }
+
+  /* ---------- مجموعاتي ---------- */
+  function showPacks() {
+    var rows = customPacks.map(function (p) {
+      return '<div class="row"><div class="grow"><strong>' + esc(p.name) + '</strong><span class="hint"> ' + p.places.length + ' مكان' + (p.places.length < MIN_PLACES ? ' (ناقصة)' : '') + '</span></div>' +
+        '<button type="button" class="mini" data-act="edit" data-id="' + esc(p.id) + '">تعديل</button>' +
+        '<button type="button" class="mini danger" data-act="del" data-id="' + esc(p.id) + '">مسح</button></div>';
+    }).join('');
+    render(
+      '<h2 class="center">مجموعاتي</h2>' +
+      '<p class="center">تقدر تصاوب حتى ' + MAX_PACKS + ' مجموعة، وكل مجموعة فيها الأماكن اللي بغيتي.</p>' +
+      (rows || '<p class="center">ما عندك حتى مجموعة بعد.</p>') +
+      (customPacks.length < MAX_PACKS ? '<button type="button" class="btn" id="new">+ مجموعة جديدة</button>' : '') +
+      '<button type="button" class="btn ghost" id="back">رجوع</button>'
+    );
+    app.querySelectorAll('.mini').forEach(function (b) {
+      b.addEventListener('click', function () {
+        if (b.dataset.act === 'edit') return showEditor(b.dataset.id);
+        var p = customPacks.filter(function (x) { return x.id === b.dataset.id; })[0];
+        if (p && window.confirm('تمسح مجموعة "' + p.name + '"؟')) {
+          customPacks = customPacks.filter(function (x) { return x.id !== p.id; });
+          savePacks(); settings = normalize(settings); saveSettings(); showPacks();
+        }
+      });
+    });
+    on('new', function () { showEditor(null); });
+    on('back', showHome);
+  }
+
+  function showEditor(id) {
+    var pack = id ? customPacks.filter(function (x) { return x.id === id; })[0] : null;
+    render(
+      '<h2 class="center">' + (pack ? 'تعديل المجموعة' : 'مجموعة جديدة') + '</h2>' +
+      '<div class="row"><label for="pname">السمية</label><input type="text" id="pname" maxlength="' + MAX_PACK_NAME + '" autocomplete="off" placeholder="مثلا: أماكن الخدمة" value="' + esc(pack ? pack.name : '') + '"></div>' +
+      '<p class="center">كتب مكان واحد فكل سطر. خاصك ' + MIN_PLACES + ' أماكن على الأقل.</p>' +
+      '<textarea id="places" rows="10" aria-label="لائحة الأماكن" placeholder="دار الجدة&#10;السطح&#10;الكراج&#10;الحومة&#10;المقهى ديال الحي">' + esc(pack ? pack.places.join('\n') : '') + '</textarea>' +
+      '<p class="hint" id="count" role="status"></p><p class="err" id="err" role="alert"></p>' +
+      '<button type="button" class="btn" id="save">حفظ</button>' +
+      '<button type="button" class="btn ghost" id="back">رجوع</button>'
+    );
+    var area = document.getElementById('places'), count = document.getElementById('count'), err = document.getElementById('err');
+    var update = function () {
+      var n = cleanPlaces(area.value).length;
+      count.textContent = n >= MIN_PLACES ? n + ' مكان، واجدة للعب.' : n + ' من ' + MIN_PLACES + ' أماكن (كمل شوية).';
+    };
+    area.addEventListener('input', update); update();
+
+    on('save', function () {
+      var name = cleanLine(document.getElementById('pname').value, MAX_PACK_NAME), list = cleanPlaces(area.value);
+      var low = name.toLowerCase();
+      var taken = Object.keys(BUILTIN).some(function (n) { return n.toLowerCase() === low; }) ||
+        customPacks.some(function (p) { return p.id !== id && p.name.toLowerCase() === low; });
+      if (!name) { err.textContent = 'كتب سمية للمجموعة.'; return; }
+      if (taken) { err.textContent = 'هاد السمية مستعملة، ختار وحدة أخرى.'; return; }
+      if (list.length < MIN_PLACES) { err.textContent = 'خاصك ' + MIN_PLACES + ' أماكن على الأقل.'; return; }
+      if (pack) { pack.name = name; pack.places = list; }
+      else { pack = { id: newId(), name: name, places: list }; customPacks.push(pack); }
+      savePacks(); settings.pack = 'c:' + pack.id; settings = normalize(settings); saveSettings(); showPacks();
+    });
+    on('back', showPacks);
+  }
+
+  /* ---------- اللعب ---------- */
+  function startGame() {
+    var list = placesFor(settings.pack), place;
+    do { place = list[randInt(list.length)]; } while (place === lastPlace && list.length > 1);
+    lastPlace = place;
+    var roles = [];
+    for (var i = 0; i < settings.players; i++) roles.push(i < settings.spies);
+    game = { place: place, roles: shuffle(roles), index: 0, shown: false, endAt: 0 };
+    showReveal();
+  }
+
+  function showReveal() {
+    var name = esc(playerName(game.index));
+    var title = '<h2 class="center">دور ' + name + '</h2><p class="center hint">اللاعب ' + (game.index + 1) + ' من ' + settings.players + '</p>';
+    var card;
+    if (!game.shown) {
+      card = '<div class="card hidden" id="card" role="button" tabindex="0"><div class="big">كليكي باش تشوف</div><small>تأكد بلي غير ' + name + ' لي كتشوف الشاشة</small></div>';
+    } else if (game.roles[game.index]) {
+      card = '<div class="card" id="card" role="button" tabindex="0"><div class="big">نتا الجاسوس 🕵️</div><small>حاول تعرف المكان بلا ما يحسو بيك. كليكي باش تخبي.</small></div>';
+    } else {
+      card = '<div class="card safe" id="card" role="button" tabindex="0"><small>المكان هو</small><div class="big">' + esc(game.place) + '</div><small>كليكي باش تخبي وعطي التيليفون للي بعدك.</small></div>';
+    }
+    render(title + card);
+    var el = document.getElementById('card');
+    var act = function () {
+      if (!game.shown) { game.shown = true; return showReveal(); }
+      game.shown = false; game.index++;
+      if (game.index >= settings.players) showPlay(); else showReveal();
+    };
+    el.addEventListener('click', act);
+    el.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); act(); } });
+    el.focus();
+  }
+
+  function showPlay() {
+    game.endAt = Date.now() + settings.mins * 60000;
+    var first = esc(playerName(randInt(settings.players)));
+    render(
+      '<h2 class="center">سولو بعضياتكم</h2>' +
+      '<p class="center">كل واحد يسول سؤال للي بعدو على المكان. الجاسوس خاصو يتخبى بين الأجوبة.</p>' +
+      '<p class="center">اللي يبدا السؤال الأول: <strong>' + first + '</strong></p>' +
+      '<div class="timer" id="timer" role="timer">' + fmt(settings.mins * 60) + '</div>' +
+      '<button type="button" class="btn" id="reveal">كشف الجاسوس</button>'
+    );
+    on('reveal', function () { showResult(''); });
+    stopTimer();
+    timerId = setInterval(function () {
+      var left = Math.max(0, Math.ceil((game.endAt - Date.now()) / 1000));
+      var el = document.getElementById('timer');
+      if (el) { el.textContent = fmt(left); el.classList.toggle('low', left <= 30); }
+      if (left <= 0) { if (navigator.vibrate) navigator.vibrate([300, 150, 300]); showResult('وفى الوقت!'); }
+    }, 250);
+  }
+
+  function showResult(message) {
+    stopTimer();
+    var spies = [];
+    game.roles.forEach(function (isSpy, i) { if (isSpy) spies.push(esc(playerName(i))); });
+    render(
+      '<h2 class="center">' + (message || 'الكشف') + '</h2>' +
+      '<div class="card safe"><small>المكان كان</small><div class="big">' + esc(game.place) + '</div><small>' + (spies.length > 1 ? 'الجواسيس: ' : 'الجاسوس: ') + spies.join(' و ') + '</small></div>' +
+      '<button type="button" class="btn" id="again">لعبة جديدة</button>' +
+      '<button type="button" class="btn ghost" id="settings">الإعدادات</button>'
+    );
+    on('again', startGame); on('settings', showHome);
+  }
+
+  function stopTimer() { if (timerId) { clearInterval(timerId); timerId = null; } }
+
+  showHome();
+})();
+
+</script>
+</body>
+</html>
